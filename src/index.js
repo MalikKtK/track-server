@@ -13,17 +13,28 @@ app.use(bodyParser.json());
 app.use(authRoutes);
 app.use(trackRoutes);
 
-const mongoUri = 'mongodb+srv://malikseventyr:nwr92auv@cluster0.27gstwo.mongodb.net/?retryWrites=true&w=majority'
-mongoose.connect(mongoUri, {
+const mongoUri = "mongodb+srv://malikseventyr:nwr92auv@cluster0.27gstwo.mongodb.net/?retryWrites=true&w=majority";
+if (!mongoUri) {
+  throw new Error(
+    `MongoURI was not supplied.  Make sure you watch the video on setting up Mongo DB!`
+  );
+}
+
+mongoose.set("strictQuery", true);
+// resolves future deprecation issue with Mongoose v7
+
+mongoose.connect(mongoUri);
+mongoose.connection.on("connected", () => {
+  console.log("Connected to mongo instance");
 });
-mongoose.connection.on('connected', () => {
-    console.log('Connected to mongo instance');
-});
-mongoose.connection.on('error', (err) => {
-    console.error('Error connecting to mongo', err);
-});
-app.get("/", requireAuth, (req, res) => {
-    res.send(`Your email: ${req.user.email}`);
+mongoose.connection.on("error", (err) => {
+  console.error("Error connecting to mongo", err);
 });
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+app.get("/", requireAuth, (req, res) => {
+  res.send(`Your email: ${req.user.email}`);
+});
+
+app.listen(3000, () => {
+  console.log("Listening on port 3000");
+});
